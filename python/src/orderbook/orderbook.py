@@ -156,19 +156,15 @@ def print_list(orderbook):
 # Driver Program
 def main():
 	# Read in positional arguments
-	test_input_filename = sys.argv[1]
-	
+
 	# Initialize order book
 	orderbook = Orderbook()
+	num_lines = int(next(sys.stdin))
 
-	# Read test input file from file path
-	test_input_file = open(test_input_filename, 'r')
-	input_lines = test_input_file.readlines()
-	num_lines = input_lines.pop(0)
-
-	# Process orders line by line
-	for _ in range(int(num_lines)):
-		line_args = input_lines.pop(0).strip().split(" ")
+	while num_lines > 0:
+		# print("Num lines:", num_lines)
+		line = next(sys.stdin)
+		line_args = line.strip().split(" ")
 		id = int(line_args[0])
 		price = int(line_args[1])
 		quantity = int(line_args[2])
@@ -180,6 +176,7 @@ def main():
 			Order(id, price, quantity, is_buy, time), operation
 		)
 
+		num_lines = num_lines-1;	
 
 	# Get the final state of the orderbook and print to stdout
 	curr_node = orderbook.head
@@ -190,5 +187,4 @@ def main():
 		))
 		curr_node = curr_node.next
 
-if __name__ == "__main__":
-    main()
+main()
