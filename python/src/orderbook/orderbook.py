@@ -1,4 +1,4 @@
-import distutils, os, sys
+import os, sys
 
 class Order:
     
@@ -110,6 +110,7 @@ class Orderbook:
 		prev_node.next = curr_node.next
 
 	def match_buy_order(self, order):
+
 		if not order.is_buy: raise ValueError("Cannot match sell order")
 
 		matched_orders = []
@@ -157,15 +158,11 @@ def main():
 	# Read in positional arguments
 	test_input_filename = sys.argv[1]
 	
-	# Generate path to test input file
-	tst_dir_name = os.path.dirname(__file__).split("src")[0]
-	test_input_file_path = os.path.join(tst_dir_name, "resources/{}".format(test_input_filename))
-
 	# Initialize order book
 	orderbook = Orderbook()
 
 	# Read test input file from file path
-	test_input_file = open(test_input_file_path, 'r')
+	test_input_file = open(test_input_filename, 'r')
 	input_lines = test_input_file.readlines()
 	num_lines = input_lines.pop(0)
 
@@ -175,13 +172,14 @@ def main():
 		id = int(line_args[0])
 		price = int(line_args[1])
 		quantity = int(line_args[2])
-		is_buy = bool(distutils.util.strtobool(line_args[3]))
+		is_buy = line_args[3] == "True"
 		time = int(line_args[4])
 		operation = line_args[5]
 
 		orderbook.process_order(
 			Order(id, price, quantity, is_buy, time), operation
 		)
+
 
 	# Get the final state of the orderbook and print to stdout
 	curr_node = orderbook.head
