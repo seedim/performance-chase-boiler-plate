@@ -109,14 +109,16 @@ class Orderbook:
 		# Remove node from the list
 		prev_node.next = curr_node.next
 
+	# Function to match the given order with available orders in book
+	# returns a list containing all match order ids
 	def match_buy_order(self, order):
 
 		if not order.is_buy: raise ValueError("Cannot match sell order")
 
-		matched_orders = []
+		matched_order_ids = []
 
 		# If orderbook is empty, return empty list
-		if self.head == None: return matched_orders
+		if self.head == None: return matched_order_ids
 
 		remaining_qty = order.quantity
 		curr_node = self.head
@@ -128,15 +130,15 @@ class Orderbook:
 			if curr_order.unfilled_quantity <= remaining_qty:
 				remaining_qty -= curr_order.unfilled_quantity
 				curr_order.unfilled_quantity = 0
-				matched_orders.append(curr_order)
+				matched_order_ids.append(curr_order.id)
 				self.delete_order_by_id(curr_order.id)
 			else:
 				curr_order.unfilled_quantity -= remaining_qty
 				remaining_qty = 0
-				matched_orders.append(curr_order)
+				matched_order_ids.append(curr_order.id)
 			curr_node = curr_node.next
 
-		return matched_orders
+		return matched_order_ids
 
 
 # Prints out the Orderbook
@@ -187,4 +189,5 @@ def main():
 		))
 		curr_node = curr_node.next
 
-main()
+if __name__ == "__main__":
+	main()
