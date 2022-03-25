@@ -1,14 +1,15 @@
-package orderbook;
+package com.orderbook;
 
 import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * An In-memory Orderbook represented by a Singly Linked List.
- *
+ * <p>
  * This list is kept sorted by a price-time priority; lowest price orders are kept in the front
  * and if two orders have the same price, the order placed first is kept in front. For example:
- *  list -> (price: 1, time: 3) -> (price: 1, time: 4) -> (price: 2, time: 2) -> (price: 10, time: 1) -> null
- *
+ * list -> (price: 1, time: 3) -> (price: 1, time: 4) -> (price: 2, time: 2) -> (price: 10, time: 1) -> null
+ * <p>
  * Author: Seed Labs Team
  */
 public class Orderbook {
@@ -16,18 +17,48 @@ public class Orderbook {
     // Head of list
     Node head;
 
-    /** Linked list Node, inner class is static so that main() can access it */
+    /** Represent an Order that can made by a user */
+    static class Order {
+        final int id;
+        final int price;
+        final int quantity;
+        final boolean isBuy;
+        final int time;
+        int unfilledQty;
+
+
+        public Order(int id, int price, int quantity, boolean isBuy, int time) {
+            this.id = id;
+            this.price = price;
+            this.quantity = quantity;
+            this.isBuy = isBuy;
+            this.time = time;
+            this.unfilledQty = quantity;
+        }
+
+        @Override
+        public String toString() {
+            return "Order(" + "id: " + id + ", price: " + price + ", qty: " + unfilledQty + ", isBuy: " + isBuy + ", time: " + time + ")";
+        }
+    }
+
+    /**
+     * Linked list Node, inner class is static so that main() can access it
+     */
     static class Node {
         Order order;
         Node next;
+
         Node(Order o) {
             order = o;
             next = null;
         }
     }
 
-    /** If sell order, inserts order into the orderbook. If buy order, matches order against sell orders
+    /**
+     * If sell order, inserts order into the orderbook. If buy order, matches order against sell orders
      * in the orderbook
+     *
      * @param order
      */
     public void processOrder(Order order, String operation) {
@@ -49,10 +80,12 @@ public class Orderbook {
         printList(this);
     }
 
-    /** Inserts sell order into orderbook based on price-time priority */
+    /**
+     * Inserts sell order into orderbook based on price-time priority
+     */
     private void insertSellOrder(Order order) {
 
-        if (order.isBuy()) throw new RuntimeException("Cannot insert buy order into orderbook");
+        if (order.isBuy) throw new RuntimeException("Cannot insert buy order into orderbook");
 
         // Create a new node for the order
         Node newNode = new Node(order);
@@ -77,7 +110,9 @@ public class Orderbook {
 
     }
 
-    /** Deletes order from the orderbook by id */
+    /**
+     * Deletes order from the orderbook by id
+     */
     private void deleteOrderById(int id) {
 
         Node prevNode = null;
@@ -102,19 +137,20 @@ public class Orderbook {
         prevNode.next = currNode.next;
     }
 
-    /** Matches incoming buy order against orders in the book based on price-time priority.
-     *
+    /**
+     * Matches incoming buy order against orders in the book based on price-time priority.
+     * <p>
      * All matched orders are returned in an array and deleted from the orderbook. If any order in the book is
      * only partially matched, it is not deleted but has its quantity reduced & is returned as parted of matchedOrders.
-     *
+     * <p>
      * If the incoming order can not be entirely filled at the specified price and quantity,
      * the incoming order's unfilled quantity is ignored
-     * */
-    private ArrayList<Order> matchBuyOrder(Order order) {
+     */
+    private ArrayList<Integer> matchBuyOrder(Order order) {
 
-        if (!order.isBuy()) throw new RuntimeException("Cannot match sell order");
+        if (!order.isBuy) throw new RuntimeException("Cannot match sell order");
 
-        ArrayList<Order> matchedOrders = new ArrayList<>();
+        ArrayList<Integer> matchedOrders = new ArrayList<>();
 
         // If orderbook is empty, return empty list
         if (head == null) return matchedOrders;
@@ -125,16 +161,16 @@ public class Orderbook {
         // Since we keep the orderbook already sorted by price-time priority, we can just iterate
         // the list and delete orders until our incoming order is completely matched
         while (currNode != null && remainingQty > 0 && currNode.order.price <= order.price) {
-            Order currOrder =  currNode.order;
+            Order currOrder = currNode.order;
             if (currOrder.unfilledQty <= remainingQty) {
                 remainingQty -= currOrder.unfilledQty;
                 currOrder.unfilledQty = 0;
-                matchedOrders.add(currOrder);
+                matchedOrders.add(currOrder.id);
                 deleteOrderById(currOrder.id);
             } else {
                 currOrder.unfilledQty -= remainingQty;
                 remainingQty = 0;
-                matchedOrders.add(currOrder);
+                matchedOrders.add(currOrder.id);
             }
             currNode = currNode.next;
         }
@@ -142,11 +178,10 @@ public class Orderbook {
         return matchedOrders;
     }
 
-
-
-    /** Prints out the Orderbook */
-    public static void printList(Orderbook list)
-    {
+    /**
+     * Prints out the Orderbook
+     */
+    public static void printList(Orderbook list) {
         Node currNode = list.head;
 
         System.out.print("Orderbook: ");
@@ -164,16 +199,19 @@ public class Orderbook {
 
         // Start with an empty orderbook
         Orderbook orderbook = new Orderbook();
+        
+        Scanner sc = new Scanner(System.in);
+        int countOfTests = sc.nextInt();
 
-        // Insert some orders
-        orderbook.processOrder(new Order(1, 10, 5, false, 1), "insert");
-        orderbook.processOrder(new Order(2, 2, 4, false, 2), "insert");
-        orderbook.processOrder(new Order(3, 1, 6, false, 3), "insert");
-        orderbook.processOrder(new Order(4, 1, 1, false, 4), "insert");
+        while (countOfTests-- > 0) {
+            int id = Integer.parseInt(sc.next());
+            int price = Integer.parseInt(sc.next());
+            int qty = Integer.parseInt(sc.next());
+            boolean is_buy = sc.next().equals("True");
+            int time = Integer.parseInt(sc.next());
+            String operation = sc.next();
 
-
-        // Match an order
-        orderbook.processOrder(new Order(7, 3, 10, true, 5), "match");
-
+            orderbook.processOrder(new Order(id, price, qty, is_buy, time), operation);
+        }
     }
 }
